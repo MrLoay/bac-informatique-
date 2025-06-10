@@ -436,12 +436,17 @@
             attachEventListeners();
         }
 
-        // Load exam database from JSON
+        // Load exam database from backend API
         async function loadExamDatabase() {
             try {
-                const response = await fetch('/exams/exams-database.json');
-                examDatabase = await response.json();
-                console.log('Exam database loaded:', examDatabase);
+                const response = await fetch('/api/exams');
+                if (response.ok) {
+                    examDatabase = await response.json();
+                    console.log('Exam database loaded:', examDatabase);
+                } else {
+                    console.warn('Failed to load exam database from API');
+                    examDatabase = {};
+                }
             } catch (error) {
                 console.warn('Could not load exam database:', error);
                 examDatabase = {};
@@ -599,18 +604,18 @@
                     </p>
 
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
-                        <button onclick="downloadPDF('${subject.id}', '${exam.filename}')"
+                        <button onclick="downloadPDF('${subject.id}', '${year}', '${session}', 'exam')"
                                 style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             📥 Télécharger l'Examen
                         </button>
 
-                        <button onclick="viewPDF('${subject.id}', '${exam.filename}')"
+                        <button onclick="viewPDF('${subject.id}', '${year}', '${session}', 'exam')"
                                 style="padding: 12px 24px; background: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             👁️ Voir en Ligne
                         </button>
 
                         ${hasCorrection ? `
-                            <button onclick="downloadPDF('${subject.id}', '${exam.correction}')"
+                            <button onclick="downloadPDF('${subject.id}', '${year}', '${session}', 'correction')"
                                     style="padding: 12px 24px; background: var(--warning-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                 ✅ Télécharger Correction
                             </button>
@@ -636,28 +641,44 @@
         }
 
         // Download PDF function
-        function downloadPDF(subjectId, filename) {
-            const url = `/exams/${subjectId}/${filename}`;
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.click();
+        function downloadPDF(subjectId, year, session, type = 'exam') {
+            const url = `/api/exams/download/${subjectId}/${year}/${session}/${type}`;
+            window.open(url, '_blank');
 
-            // Track download (you can add analytics here)
-            console.log(`Downloaded: ${filename}`);
+            // Track download
+            console.log(`Downloaded: ${subjectId}_${year}_${session}_${type}`);
         }
 
         // View PDF function
-        function viewPDF(subjectId, filename) {
-            const url = `/exams/${subjectId}/${filename}`;
+        function viewPDF(subjectId, year, session, type = 'exam') {
+            const url = `/api/exams/download/${subjectId}/${year}/${session}/${type}?action=view`;
             window.open(url, '_blank');
 
-            // Track view (you can add analytics here)
-            console.log(`Viewed: ${filename}`);
+            // Track view
+            console.log(`Viewed: ${subjectId}_${year}_${session}_${type}`);
         }
 
-        // Update statistics
-        function updateStats() {
+        // Update statistics from backend
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/exams/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('total-exams').textContent = stats.totalExams;
+                    document.getElementById('total-subjects').textContent = stats.totalSubjects;
+                    document.getElementById('years-covered').textContent = stats.yearsCovered;
+                } else {
+                    // Fallback to local calculation
+                    updateStatsLocal();
+                }
+            } catch (error) {
+                console.warn('Failed to fetch stats from API, using local calculation');
+                updateStatsLocal();
+            }
+        }
+
+        // Fallback local statistics calculation
+        function updateStatsLocal() {
             let totalExams = 0;
             let totalSubjects = 0;
             let yearsSet = new Set();
