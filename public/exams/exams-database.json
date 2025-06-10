@@ -1,0 +1,224 @@
+{
+  "math": {
+    "name": "Mathématiques",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "math_2023_principale.pdf",
+          "correction": "math_2023_principale_correction.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "math_2023_controle.pdf",
+          "correction": "math_2023_controle_correction.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "math_2022_principale.pdf",
+          "correction": "math_2022_principale_correction.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "math_2022_controle.pdf",
+          "correction": "math_2022_controle_correction.pdf"
+        }
+      },
+      "2021": {
+        "principale": {
+          "available": true,
+          "filename": "math_2021_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "math_2021_controle.pdf"
+        }
+      }
+    }
+  },
+  "sciences_physiques": {
+    "name": "Sciences Physiques",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "sciences_physiques_2023_principale.pdf",
+          "correction": "sciences_physiques_2023_principale_correction.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "sciences_physiques_2023_controle.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "sciences_physiques_2022_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "sciences_physiques_2022_controle.pdf"
+        }
+      }
+    }
+  },
+  "programmation_theorique": {
+    "name": "Programmation (Théorique)",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "programmation_theorique_2023_principale.pdf",
+          "correction": "programmation_theorique_2023_principale_correction.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "programmation_theorique_2023_controle.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "programmation_theorique_2022_principale.pdf"
+        }
+      }
+    }
+  },
+  "programmation_pratique": {
+    "name": "Programmation (Pratique)",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "programmation_pratique_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "programmation_pratique_2023_controle.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "programmation_pratique_2022_principale.pdf"
+        }
+      }
+    }
+  },
+  "sti_theorique": {
+    "name": "STI (Théorique)",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "sti_theorique_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "sti_theorique_2023_controle.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "sti_theorique_2022_principale.pdf"
+        }
+      }
+    }
+  },
+  "sti_pratique": {
+    "name": "STI (Pratique)",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "sti_pratique_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "sti_pratique_2023_controle.pdf"
+        }
+      }
+    }
+  },
+  "francais": {
+    "name": "Français",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "francais_2023_principale.pdf",
+          "correction": "francais_2023_principale_correction.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "francais_2023_controle.pdf"
+        }
+      },
+      "2022": {
+        "principale": {
+          "available": true,
+          "filename": "francais_2022_principale.pdf"
+        }
+      }
+    }
+  },
+  "arabe": {
+    "name": "Arabe",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "arabe_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "arabe_2023_controle.pdf"
+        }
+      }
+    }
+  },
+  "anglais": {
+    "name": "Anglais",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "anglais_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "anglais_2023_controle.pdf"
+        }
+      }
+    }
+  },
+  "philosophie": {
+    "name": "Philosophie",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "philosophie_2023_principale.pdf"
+        },
+        "controle": {
+          "available": true,
+          "filename": "philosophie_2023_controle.pdf"
+        }
+      }
+    }
+  },
+  "allemand": {
+    "name": "Allemand",
+    "exams": {
+      "2023": {
+        "principale": {
+          "available": true,
+          "filename": "allemand_2023_principale.pdf"
+        }
+      }
+    }
+  }
+}

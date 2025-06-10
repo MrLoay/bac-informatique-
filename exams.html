@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examens des Années Précédentes - Bac Informatique Tunisie</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1e40af;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --border-radius: 8px;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .nav-btn.secondary {
+            background-color: var(--text-secondary);
+            color: white;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .subject-card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.15);
+        }
+
+        .subject-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .subject-icon {
+            font-size: 2rem;
+            margin-right: 12px;
+        }
+
+        .subject-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .subject-coefficient {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .years-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .year-btn {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--card-background);
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .year-btn:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .year-btn.available {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .year-btn.available:hover {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .year-btn.coming-soon {
+            border-color: var(--warning-color);
+            color: var(--warning-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--card-background);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            padding: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            border-radius: var(--border-radius);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📚 Examens des Années Précédentes</h1>
+            <p>Baccalauréat Informatique Tunisie - Préparez-vous avec les sujets officiels</p>
+        </header>
+
+        <div class="navigation">
+            <a href="simple.html" class="nav-btn secondary">🧮 Calculateur de Moyenne</a>
+            <a href="exams.html" class="nav-btn primary">📚 Examens Passés</a>
+        </div>
+
+        <div class="stats-card">
+            <h2>📊 Statistiques des Examens</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-exams">0</div>
+                    <div class="stat-label">Examens disponibles</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-subjects">11</div>
+                    <div class="stat-label">Examens types</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="years-covered">15</div>
+                    <div class="stat-label">Années couvertes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Gratuit</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="year-filter">📅 Année:</label>
+                <select id="year-filter" class="filter-select">
+                    <option value="all">Toutes les années</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="session-filter">📝 Session:</label>
+                <select id="session-filter" class="filter-select">
+                    <option value="all">Toutes les sessions</option>
+                    <option value="principale">Session Principale</option>
+                    <option value="controle">Session de Contrôle</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="subject-filter">📖 Matière:</label>
+                <select id="subject-filter" class="filter-select">
+                    <option value="all">Toutes les matières</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="subjects-grid" id="subjects-grid">
+            <!-- Subjects will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Subjects data with icons and exam availability
+        const subjects = [
+            {
+                id: 'math',
+                name: 'Mathématiques',
+                coefficient: 3,
+                icon: '🔢',
+                description: 'Analyse, algèbre, géométrie, probabilités'
+            },
+            {
+                id: 'sciences_physiques',
+                name: 'Sciences Physiques',
+                coefficient: 2,
+                icon: '⚗️',
+                description: 'Physique et chimie appliquées'
+            },
+            {
+                id: 'programmation_theorique',
+                name: 'Programmation (Théorique)',
+                coefficient: 3,
+                icon: '📝',
+                description: 'Algorithmes, structures de données, concepts théoriques'
+            },
+            {
+                id: 'programmation_pratique',
+                name: 'Programmation (Pratique)',
+                coefficient: 3,
+                icon: '💻',
+                description: 'Codage, implémentation, exercices pratiques'
+            },
+            {
+                id: 'sti_theorique',
+                name: 'STI (Théorique)',
+                coefficient: 3,
+                icon: '📚',
+                description: 'Concepts théoriques des sciences et technologies'
+            },
+            {
+                id: 'sti_pratique',
+                name: 'STI (Pratique)',
+                coefficient: 3,
+                icon: '🔧',
+                description: 'Travaux pratiques, manipulation, expériences'
+            },
+            {
+                id: 'francais',
+                name: 'Français',
+                coefficient: 1,
+                icon: '🇫🇷',
+                description: 'Littérature, expression écrite et orale'
+            },
+            {
+                id: 'arabe',
+                name: 'Arabe',
+                coefficient: 1,
+                icon: '🇹🇳',
+                description: 'Langue et littérature arabes'
+            },
+            {
+                id: 'anglais',
+                name: 'Anglais',
+                coefficient: 1,
+                icon: '🇬🇧',
+                description: 'Compréhension et expression anglaises'
+            },
+            {
+                id: 'philosophie',
+                name: 'Philosophie',
+                coefficient: 1,
+                icon: '🤔',
+                description: 'Réflexion critique et argumentation'
+            },
+            {
+                id: 'allemand',
+                name: 'Allemand',
+                coefficient: 1,
+                icon: '🇩🇪',
+                description: 'Langue allemande (optionnel)'
+            }
+        ];
+
+        // Available years and their status
+        const examYears = [
+            { year: 2024, status: 'coming-soon', sessions: [] },
+            { year: 2023, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2022, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2021, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2020, status: 'available', sessions: ['principale'] },
+            { year: 2019, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2018, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2017, status: 'available', sessions: ['principale'] },
+            { year: 2016, status: 'available', sessions: ['principale', 'controle'] },
+            { year: 2015, status: 'available', sessions: ['principale'] },
+            { year: 2014, status: 'coming-soon', sessions: [] },
+            { year: 2013, status: 'coming-soon', sessions: [] },
+            { year: 2012, status: 'coming-soon', sessions: [] },
+            { year: 2011, status: 'coming-soon', sessions: [] },
+            { year: 2010, status: 'coming-soon', sessions: [] }
+        ];
+
+        // Exam database
+        let examDatabase = {};
+
+        // Initialize the page
+        async function init() {
+            await loadExamDatabase();
+            populateSubjectFilter();
+            renderSubjects();
+            updateStats();
+            attachEventListeners();
+        }
+
+        // Load exam database from JSON
+        async function loadExamDatabase() {
+            try {
+                const response = await fetch('/exams/exams-database.json');
+                examDatabase = await response.json();
+                console.log('Exam database loaded:', examDatabase);
+            } catch (error) {
+                console.warn('Could not load exam database:', error);
+                examDatabase = {};
+            }
+        }
+
+        // Populate subject filter dropdown
+        function populateSubjectFilter() {
+            const subjectFilter = document.getElementById('subject-filter');
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.id;
+                option.textContent = subject.name;
+                subjectFilter.appendChild(option);
+            });
+        }
+
+        // Render subjects grid
+        function renderSubjects() {
+            const grid = document.getElementById('subjects-grid');
+            const yearFilter = document.getElementById('year-filter').value;
+            const sessionFilter = document.getElementById('session-filter').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+
+            let filteredSubjects = subjects;
+            if (subjectFilter !== 'all') {
+                filteredSubjects = subjects.filter(s => s.id === subjectFilter);
+            }
+
+            grid.innerHTML = filteredSubjects.map(subject => `
+                <div class="subject-card">
+                    <div class="subject-header">
+                        <div class="subject-icon">${subject.icon}</div>
+                        <div>
+                            <div class="subject-title">${subject.name}</div>
+                            <div class="subject-coefficient">Coefficient: ${subject.coefficient}</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                        ${subject.description}
+                    </p>
+                    <div class="years-grid">
+                        ${renderYearsForSubject(subject, yearFilter, sessionFilter)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render years for a specific subject
+        function renderYearsForSubject(subject, yearFilter, sessionFilter) {
+            const subjectExams = examDatabase[subject.id];
+            if (!subjectExams) {
+                return '<p style="color: var(--text-secondary); text-align: center; grid-column: 1/-1;">Aucun examen disponible</p>';
+            }
+
+            const availableYears = Object.keys(subjectExams.exams || {});
+            let filteredYears = availableYears;
+
+            if (yearFilter !== 'all') {
+                filteredYears = availableYears.filter(year => year === yearFilter);
+            }
+
+            return filteredYears.map(year => {
+                const yearExams = subjectExams.exams[year];
+                const sessions = Object.keys(yearExams);
+
+                // Filter by session if specified
+                let availableSessions = sessions;
+                if (sessionFilter !== 'all') {
+                    availableSessions = sessions.filter(session => session === sessionFilter);
+                }
+
+                if (availableSessions.length === 0) {
+                    return '';
+                }
+
+                return availableSessions.map(session => {
+                    const exam = yearExams[session];
+                    const isAvailable = exam && exam.available;
+                    const hasCorrection = exam && exam.correction;
+
+                    const className = isAvailable ? 'year-btn available' : 'year-btn coming-soon';
+                    const onclick = isAvailable ?
+                        `onclick="openExam('${subject.id}', '${year}', '${session}')"` : '';
+
+                    const sessionLabel = session === 'principale' ? 'P' : 'C';
+                    const correctionIcon = hasCorrection ? ' ✓' : '';
+
+                    return `
+                        <div class="${className}" ${onclick} title="${year} - Session ${session}${hasCorrection ? ' (avec correction)' : ''}">
+                            ${year} ${sessionLabel}${correctionIcon}
+                            ${!isAvailable ? '<br><small>Bientôt</small>' : ''}
+                        </div>
+                    `;
+                }).join('');
+            }).join('');
+        }
+
+        // Open exam function
+        function openExam(subjectId, year, session) {
+            const subject = subjects.find(s => s.id === subjectId);
+            const subjectExams = examDatabase[subjectId];
+
+            if (!subjectExams || !subjectExams.exams[year] || !subjectExams.exams[year][session]) {
+                alert('❌ Examen non trouvé dans la base de données');
+                return;
+            }
+
+            const exam = subjectExams.exams[year][session];
+            if (!exam.available) {
+                alert('⏳ Cet examen sera bientôt disponible');
+                return;
+            }
+
+            // Show exam options modal
+            showExamModal(subject, year, session, exam);
+        }
+
+        // Show exam modal with download options
+        function showExamModal(subject, year, session, exam) {
+            const sessionName = session === 'principale' ? 'Session Principale' : 'Session de Contrôle';
+            const hasCorrection = exam.correction;
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 12px;
+                    padding: 30px;
+                    max-width: 500px;
+                    width: 90%;
+                    text-align: center;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                ">
+                    <h2 style="color: var(--primary-color); margin-bottom: 20px;">
+                        📄 ${subject.name}
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        <strong>Année:</strong> ${year}<br>
+                        <strong>Session:</strong> ${sessionName}<br>
+                        <strong>Coefficient:</strong> ${subject.coefficient}
+                    </p>
+
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+                        <button onclick="downloadPDF('${subject.id}', '${exam.filename}')"
+                                style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            📥 Télécharger l'Examen
+                        </button>
+
+                        <button onclick="viewPDF('${subject.id}', '${exam.filename}')"
+                                style="padding: 12px 24px; background: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            👁️ Voir en Ligne
+                        </button>
+
+                        ${hasCorrection ? `
+                            <button onclick="downloadPDF('${subject.id}', '${exam.correction}')"
+                                    style="padding: 12px 24px; background: var(--warning-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ✅ Télécharger Correction
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    <button onclick="closeModal()"
+                            style="padding: 8px 16px; background: var(--text-secondary); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                        Fermer
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+
+            window.closeModal = () => {
+                document.body.removeChild(modal);
+                delete window.closeModal;
+            };
+        }
+
+        // Download PDF function
+        function downloadPDF(subjectId, filename) {
+            const url = `/exams/${subjectId}/${filename}`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+
+            // Track download (you can add analytics here)
+            console.log(`Downloaded: ${filename}`);
+        }
+
+        // View PDF function
+        function viewPDF(subjectId, filename) {
+            const url = `/exams/${subjectId}/${filename}`;
+            window.open(url, '_blank');
+
+            // Track view (you can add analytics here)
+            console.log(`Viewed: ${filename}`);
+        }
+
+        // Update statistics
+        function updateStats() {
+            let totalExams = 0;
+            let totalSubjects = 0;
+            let yearsSet = new Set();
+
+            Object.keys(examDatabase).forEach(subjectId => {
+                const subjectData = examDatabase[subjectId];
+                if (subjectData.exams) {
+                    totalSubjects++;
+                    Object.keys(subjectData.exams).forEach(year => {
+                        yearsSet.add(year);
+                        Object.keys(subjectData.exams[year]).forEach(session => {
+                            const exam = subjectData.exams[year][session];
+                            if (exam.available) {
+                                totalExams++;
+                            }
+                        });
+                    });
+                }
+            });
+
+            document.getElementById('total-exams').textContent = totalExams;
+            document.getElementById('total-subjects').textContent = totalSubjects;
+            document.getElementById('years-covered').textContent = yearsSet.size;
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            document.getElementById('year-filter').addEventListener('change', renderSubjects);
+            document.getElementById('session-filter').addEventListener('change', renderSubjects);
+            document.getElementById('subject-filter').addEventListener('change', renderSubjects);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
