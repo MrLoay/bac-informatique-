@@ -266,6 +266,9 @@
         <div class="navigation">
             <a href="simple.html" class="nav-btn secondary">🧮 Calculateur de Moyenne</a>
             <a href="exams.html" class="nav-btn primary">📚 Examens Passés</a>
+            <button class="nav-btn test-api-btn" style="background: #ff6b6b; border: none; color: white; cursor: pointer;">
+                🔧 Test API
+            </button>
         </div>
 
         <div class="stats-card">
@@ -439,16 +442,30 @@
         // Load exam database from backend API
         async function loadExamDatabase() {
             try {
+                console.log('Loading exam database...');
                 const response = await fetch('/api/exams');
+                console.log('API response status:', response.status);
+
                 if (response.ok) {
                     examDatabase = await response.json();
                     console.log('Exam database loaded:', examDatabase);
+                    // Re-render subjects after loading data
+                    renderSubjects();
                 } else {
-                    console.warn('Failed to load exam database from API');
-                    examDatabase = {};
+                    console.warn('Failed to load exam database from API, trying fallback...');
+                    // Try fallback JSON file
+                    const fallbackResponse = await fetch('/api/exams-fallback');
+                    if (fallbackResponse.ok) {
+                        examDatabase = await fallbackResponse.json();
+                        console.log('Fallback exam database loaded:', examDatabase);
+                        renderSubjects();
+                    } else {
+                        examDatabase = {};
+                    }
                 }
             } catch (error) {
                 console.warn('Could not load exam database:', error);
+                // Use empty database as last resort
                 examDatabase = {};
             }
         }
@@ -467,16 +484,53 @@
         // Render subjects grid
         function renderSubjects() {
             const grid = document.getElementById('subjects-grid');
+            console.log('Grid element found:', grid);
+
+            if (!grid) {
+                console.error('subjects-grid element not found!');
+                return;
+            }
+
             const yearFilter = document.getElementById('year-filter').value;
             const sessionFilter = document.getElementById('session-filter').value;
             const subjectFilter = document.getElementById('subject-filter').value;
 
-            let filteredSubjects = subjects;
+            console.log('Rendering subjects with examDatabase:', examDatabase);
+            console.log('ExamDatabase keys:', Object.keys(examDatabase));
+
+            // Get subjects from examDatabase instead of static array
+            const availableSubjects = Object.keys(examDatabase).map(subjectId => {
+                const subjectData = examDatabase[subjectId];
+                const staticSubject = subjects.find(s => s.id === subjectId);
+                console.log(`Processing subject ${subjectId}:`, subjectData);
+                return {
+                    id: subjectId,
+                    name: subjectData.name,
+                    coefficient: subjectData.coefficient,
+                    icon: subjectData.icon,
+                    description: staticSubject ? staticSubject.description : 'Examens disponibles'
+                };
+            });
+
+            let filteredSubjects = availableSubjects;
             if (subjectFilter !== 'all') {
-                filteredSubjects = subjects.filter(s => s.id === subjectFilter);
+                filteredSubjects = availableSubjects.filter(s => s.id === subjectFilter);
             }
 
-            grid.innerHTML = filteredSubjects.map(subject => `
+            console.log('Available subjects:', availableSubjects);
+            console.log('Filtered subjects:', filteredSubjects);
+
+            if (filteredSubjects.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
+                        <h3>Aucun examen disponible</h3>
+                        <p>Les examens seront bientôt ajoutés à la base de données.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const htmlContent = filteredSubjects.map(subject => `
                 <div class="subject-card">
                     <div class="subject-header">
                         <div class="subject-icon">${subject.icon}</div>
@@ -493,6 +547,13 @@
                     </div>
                 </div>
             `).join('');
+
+            console.log('Generated HTML content:', htmlContent);
+            grid.innerHTML = htmlContent;
+            console.log('Grid innerHTML set, current content:', grid.innerHTML);
+
+            // Add event listeners for exam buttons
+            addExamButtonListeners();
         }
 
         // Render years for a specific subject
@@ -529,20 +590,34 @@
                     const hasCorrection = exam && exam.correction;
 
                     const className = isAvailable ? 'year-btn available' : 'year-btn coming-soon';
-                    const onclick = isAvailable ?
-                        `onclick="openExam('${subject.id}', '${year}', '${session}')"` : '';
+                    const dataAttributes = isAvailable ?
+                        `data-subject="${subject.id}" data-year="${year}" data-session="${session}"` : '';
 
                     const sessionLabel = session === 'principale' ? 'P' : 'C';
                     const correctionIcon = hasCorrection ? ' ✓' : '';
 
                     return `
-                        <div class="${className}" ${onclick} title="${year} - Session ${session}${hasCorrection ? ' (avec correction)' : ''}">
+                        <div class="${className}" ${dataAttributes} title="${year} - Session ${session}${hasCorrection ? ' (avec correction)' : ''}">
                             ${year} ${sessionLabel}${correctionIcon}
                             ${!isAvailable ? '<br><small>Bientôt</small>' : ''}
                         </div>
                     `;
                 }).join('');
             }).join('');
+        }
+
+        // Add event listeners for exam buttons
+        function addExamButtonListeners() {
+            document.querySelectorAll('.year-btn.available').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const subjectId = e.target.getAttribute('data-subject');
+                    const year = e.target.getAttribute('data-year');
+                    const session = e.target.getAttribute('data-session');
+                    if (subjectId && year && session) {
+                        openExam(subjectId, year, session);
+                    }
+                });
+            });
         }
 
         // Open exam function
@@ -604,25 +679,25 @@
                     </p>
 
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
-                        <button onclick="downloadPDF('${subject.id}', '${year}', '${session}', 'exam')"
+                        <button class="modal-btn download-exam" data-subject="${subject.id}" data-year="${year}" data-session="${session}" data-type="exam"
                                 style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             📥 Télécharger l'Examen
                         </button>
 
-                        <button onclick="viewPDF('${subject.id}', '${year}', '${session}', 'exam')"
+                        <button class="modal-btn view-exam" data-subject="${subject.id}" data-year="${year}" data-session="${session}" data-type="exam"
                                 style="padding: 12px 24px; background: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             👁️ Voir en Ligne
                         </button>
 
                         ${hasCorrection ? `
-                            <button onclick="downloadPDF('${subject.id}', '${year}', '${session}', 'correction')"
+                            <button class="modal-btn download-correction" data-subject="${subject.id}" data-year="${year}" data-session="${session}" data-type="correction"
                                     style="padding: 12px 24px; background: var(--warning-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                                 ✅ Télécharger Correction
                             </button>
                         ` : ''}
                     </div>
 
-                    <button onclick="closeModal()"
+                    <button class="modal-btn close-modal"
                             style="padding: 8px 16px; background: var(--text-secondary); color: white; border: none; border-radius: 6px; cursor: pointer;">
                         Fermer
                     </button>
@@ -633,6 +708,24 @@
             modal.onclick = (e) => {
                 if (e.target === modal) closeModal();
             };
+
+            // Add event listeners for modal buttons
+            modal.querySelectorAll('.modal-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const subjectId = e.target.getAttribute('data-subject');
+                    const year = e.target.getAttribute('data-year');
+                    const session = e.target.getAttribute('data-session');
+                    const type = e.target.getAttribute('data-type');
+
+                    if (e.target.classList.contains('download-exam') || e.target.classList.contains('download-correction')) {
+                        downloadPDF(subjectId, year, session, type);
+                    } else if (e.target.classList.contains('view-exam')) {
+                        viewPDF(subjectId, year, session, type);
+                    } else if (e.target.classList.contains('close-modal')) {
+                        closeModal();
+                    }
+                });
+            });
 
             window.closeModal = () => {
                 document.body.removeChild(modal);
@@ -661,18 +754,21 @@
         // Update statistics from backend
         async function updateStats() {
             try {
+                console.log('Fetching stats from API...');
                 const response = await fetch('/api/exams/stats');
                 if (response.ok) {
                     const stats = await response.json();
+                    console.log('Stats received:', stats);
                     document.getElementById('total-exams').textContent = stats.totalExams;
                     document.getElementById('total-subjects').textContent = stats.totalSubjects;
                     document.getElementById('years-covered').textContent = stats.yearsCovered;
                 } else {
+                    console.warn('API stats failed, using local calculation');
                     // Fallback to local calculation
                     updateStatsLocal();
                 }
             } catch (error) {
-                console.warn('Failed to fetch stats from API, using local calculation');
+                console.warn('Failed to fetch stats from API, using local calculation:', error);
                 updateStatsLocal();
             }
         }
@@ -709,6 +805,26 @@
             document.getElementById('year-filter').addEventListener('change', renderSubjects);
             document.getElementById('session-filter').addEventListener('change', renderSubjects);
             document.getElementById('subject-filter').addEventListener('change', renderSubjects);
+
+            // Test API button
+            const testBtn = document.querySelector('.test-api-btn');
+            if (testBtn) {
+                testBtn.addEventListener('click', testAPI);
+            }
+        }
+
+        // Test API function
+        async function testAPI() {
+            console.log('Testing API...');
+            try {
+                const response = await fetch('/api/exams');
+                const data = await response.json();
+                console.log('API Response:', data);
+                alert('API Test Success! Check console for details. Found ' + Object.keys(data).length + ' subjects.');
+            } catch (error) {
+                console.error('API Test Failed:', error);
+                alert('API Test Failed: ' + error.message);
+            }
         }
 
         // Initialize when page loads

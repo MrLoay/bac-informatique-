@@ -1,14 +1,21 @@
 const express = require('express');
 const multer = require('multer');
 const { pool } = require('../config/database');
-const { storage, getCloudinaryUrl, deleteFromCloudinary } = require('../config/cloudinary');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
+
+// Try to import Cloudinary, but handle if not configured
+let cloudinaryConfig = null;
+try {
+  cloudinaryConfig = require('../config/cloudinary');
+} catch (error) {
+  console.warn('Cloudinary not configured, using fallback storage');
+}
 
 const router = express.Router();
 
-// Configure multer with Cloudinary storage
+// Configure multer with fallback storage
 const upload = multer({
-  storage: storage,
+  storage: cloudinaryConfig ? cloudinaryConfig.storage : multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
       cb(null, true);
@@ -174,34 +181,34 @@ router.post('/upload', verifyToken, requireAdmin, upload.array('files'), async (
         
         if (fileType === 'correction') {
           await client.query(`
-            UPDATE exams 
-            SET correction_filename = $1, 
+            UPDATE exams
+            SET correction_filename = $1,
                 correction_cloudinary_public_id = $2,
                 correction_file_size = $3,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $4
-          `, [file.filename, file.public_id, file.size, examId]);
+          `, [file.filename || file.originalname, file.public_id || null, file.size, examId]);
         } else {
           await client.query(`
-            UPDATE exams 
-            SET filename = $1, 
+            UPDATE exams
+            SET filename = $1,
                 cloudinary_public_id = $2,
                 file_size = $3,
                 is_available = true,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $4
-          `, [file.filename, file.public_id, file.size, examId]);
+          `, [file.filename || file.originalname, file.public_id || null, file.size, examId]);
         }
       } else {
         // Create new exam
-        const insertQuery = fileType === 'correction' 
+        const insertQuery = fileType === 'correction'
           ? `INSERT INTO exams (subject_id, year, session, correction_filename, correction_cloudinary_public_id, correction_file_size, uploaded_by, is_available)
              VALUES ($1, $2, $3, $4, $5, $6, $7, false)`
           : `INSERT INTO exams (subject_id, year, session, filename, cloudinary_public_id, file_size, uploaded_by, is_available)
              VALUES ($1, $2, $3, $4, $5, $6, $7, true)`;
-        
+
         await client.query(insertQuery, [
-          subject, year, session, file.filename, file.public_id, file.size, req.user.id
+          subject, year, session, file.filename || file.originalname, file.public_id || null, file.size, req.user ? req.user.id : null
         ]);
       }
     }
@@ -212,10 +219,10 @@ router.post('/upload', verifyToken, requireAdmin, upload.array('files'), async (
       success: true,
       message: `${req.files.length} file(s) uploaded successfully`,
       files: req.files.map(f => ({
-        filename: f.filename,
-        public_id: f.public_id,
+        filename: f.filename || f.originalname,
+        public_id: f.public_id || null,
         size: f.size,
-        url: getCloudinaryUrl(f.public_id)
+        url: cloudinaryConfig && f.public_id ? cloudinaryConfig.getCloudinaryUrl(f.public_id) : null
       }))
     });
 
@@ -264,15 +271,24 @@ router.get('/download/:subject/:year/:session/:type?', async (req, res) => {
 
     client.release();
 
-    // Get Cloudinary URL
-    const fileUrl = getCloudinaryUrl(exam.public_id);
-    
-    if (req.query.action === 'view') {
-      // Redirect to view the file
-      res.redirect(fileUrl);
+    // Handle file URL based on storage type
+    if (cloudinaryConfig && exam.public_id) {
+      // Get Cloudinary URL
+      const fileUrl = cloudinaryConfig.getCloudinaryUrl(exam.public_id);
+
+      if (req.query.action === 'view') {
+        // Redirect to view the file
+        res.redirect(fileUrl);
+      } else {
+        // Force download
+        res.redirect(fileUrl + '&fl_attachment');
+      }
     } else {
-      // Force download
-      res.redirect(fileUrl + '&fl_attachment');
+      // No cloud storage, return demo message
+      res.status(404).json({
+        error: 'File not available in demo mode',
+        message: 'Configure Cloudinary for file downloads'
+      });
     }
 
   } catch (error) {
@@ -306,10 +322,12 @@ router.delete('/:subject/:year/:session', verifyToken, requireAdmin, async (req,
 
     if (fileType === 'correction' && exam.correction_cloudinary_public_id) {
       // Delete correction file
-      await deleteFromCloudinary(exam.correction_cloudinary_public_id);
+      if (cloudinaryConfig) {
+        await cloudinaryConfig.deleteFromCloudinary(exam.correction_cloudinary_public_id);
+      }
       await client.query(`
-        UPDATE exams 
-        SET correction_filename = NULL, 
+        UPDATE exams
+        SET correction_filename = NULL,
             correction_cloudinary_public_id = NULL,
             correction_file_size = NULL,
             updated_at = CURRENT_TIMESTAMP
@@ -317,10 +335,12 @@ router.delete('/:subject/:year/:session', verifyToken, requireAdmin, async (req,
       `, [exam.id]);
     } else if (fileType === 'exam' && exam.cloudinary_public_id) {
       // Delete main exam file
-      await deleteFromCloudinary(exam.cloudinary_public_id);
+      if (cloudinaryConfig) {
+        await cloudinaryConfig.deleteFromCloudinary(exam.cloudinary_public_id);
+      }
       await client.query(`
-        UPDATE exams 
-        SET filename = NULL, 
+        UPDATE exams
+        SET filename = NULL,
             cloudinary_public_id = NULL,
             file_size = NULL,
             is_available = false,
@@ -330,13 +350,15 @@ router.delete('/:subject/:year/:session', verifyToken, requireAdmin, async (req,
     } else {
       // Delete entire exam record
       await client.query('DELETE FROM exams WHERE id = $1', [exam.id]);
-      
-      // Delete from Cloudinary
-      if (exam.cloudinary_public_id) {
-        await deleteFromCloudinary(exam.cloudinary_public_id);
-      }
-      if (exam.correction_cloudinary_public_id) {
-        await deleteFromCloudinary(exam.correction_cloudinary_public_id);
+
+      // Delete from Cloudinary if configured
+      if (cloudinaryConfig) {
+        if (exam.cloudinary_public_id) {
+          await cloudinaryConfig.deleteFromCloudinary(exam.cloudinary_public_id);
+        }
+        if (exam.correction_cloudinary_public_id) {
+          await cloudinaryConfig.deleteFromCloudinary(exam.correction_cloudinary_public_id);
+        }
       }
     }
 

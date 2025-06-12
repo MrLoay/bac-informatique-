@@ -250,7 +250,7 @@
             <a href="simple.html" class="nav-btn secondary">🧮 Calculateur</a>
             <a href="exams.html" class="nav-btn secondary">📚 Examens</a>
             <a href="admin.html" class="nav-btn primary">🔧 Administration</a>
-            <button onclick="logout()" class="nav-btn" style="background-color: var(--error-color); color: white;">🚪 Déconnexion</button>
+            <button id="logout-btn" class="nav-btn" style="background-color: var(--error-color); color: white;">🚪 Déconnexion</button>
         </div>
 
         <div id="auth-check" style="display: none;">
@@ -262,7 +262,7 @@
             </div>
         </div>
 
-        <div id="admin-content">
+        <div id="admin-content" style="display: block;">
 
         <div class="instructions">
             <h3>📋 Instructions d'Upload</h3>
@@ -330,16 +330,33 @@
                     <strong>Cliquez pour sélectionner</strong> ou glissez-déposez vos fichiers PDF ici
                 </div>
                 <input type="file" id="file-input" accept=".pdf" multiple style="display: none;">
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                <button type="button" class="btn btn-primary" id="choose-files-btn">
                     Choisir des fichiers
                 </button>
             </div>
 
             <div class="file-list" id="file-list"></div>
 
+            <!-- Alternative file input for testing -->
+            <div style="margin-top: 20px; padding: 16px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background: var(--background-color);">
+                <label for="alt-file-input" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                    🔧 Alternative File Input (for testing):
+                </label>
+                <input type="file" id="alt-file-input" accept=".pdf" multiple style="width: 100%; padding: 8px;">
+            </div>
+
             <div style="margin-top: 20px; text-align: center;">
-                <button type="button" class="btn btn-success" id="upload-btn" onclick="uploadFiles()" disabled>
+                <button type="button" class="btn btn-success" id="upload-btn" disabled>
                     📤 Uploader les fichiers
+                </button>
+                <button type="button" class="btn" id="test-btn" style="background-color: var(--warning-color); color: white; margin-left: 10px;">
+                    🧪 Test JS
+                </button>
+                <button type="button" class="btn" id="test-upload-btn" style="background-color: #6366f1; color: white; margin-left: 10px;">
+                    🚀 Test Upload
+                </button>
+                <button type="button" class="btn" id="test-file-btn" style="background-color: #8b5cf6; color: white; margin-left: 10px;">
+                    📁 Test File Input
                 </button>
             </div>
         </div>
@@ -359,245 +376,8 @@
         </div>
     </div>
 
-    <script>
-        let selectedFiles = [];
-
-        // Check authentication
-        async function checkAuth() {
-            try {
-                const response = await fetch('/api/auth/check', {
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.authenticated && result.user.role === 'admin') {
-                        document.getElementById('admin-content').style.display = 'block';
-                        document.getElementById('auth-check').style.display = 'none';
-                        return true;
-                    }
-                }
-
-                // Not authenticated or not admin
-                document.getElementById('admin-content').style.display = 'none';
-                document.getElementById('auth-check').style.display = 'block';
-                return false;
-
-            } catch (error) {
-                console.error('Auth check error:', error);
-                document.getElementById('admin-content').style.display = 'none';
-                document.getElementById('auth-check').style.display = 'block';
-                return false;
-            }
-        }
-
-        // Logout function
-        async function logout() {
-            try {
-                await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-                window.location.href = '/login.html';
-            } catch (error) {
-                console.error('Logout error:', error);
-                window.location.href = '/login.html';
-            }
-        }
-
-        // Initialize
-        async function init() {
-            const isAuthenticated = await checkAuth();
-            if (isAuthenticated) {
-                setupFileUpload();
-                await updateStats();
-            }
-        }
-
-        // Setup file upload functionality
-        function setupFileUpload() {
-            const fileUpload = document.getElementById('file-upload');
-            const fileInput = document.getElementById('file-input');
-
-            // Drag and drop
-            fileUpload.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                fileUpload.classList.add('dragover');
-            });
-
-            fileUpload.addEventListener('dragleave', () => {
-                fileUpload.classList.remove('dragover');
-            });
-
-            fileUpload.addEventListener('drop', (e) => {
-                e.preventDefault();
-                fileUpload.classList.remove('dragover');
-                handleFiles(e.dataTransfer.files);
-            });
-
-            // File input change
-            fileInput.addEventListener('change', (e) => {
-                handleFiles(e.target.files);
-            });
-        }
-
-        // Handle selected files
-        function handleFiles(files) {
-            for (let file of files) {
-                if (file.type === 'application/pdf') {
-                    selectedFiles.push(file);
-                } else {
-                    showAlert(`❌ ${file.name} n'est pas un fichier PDF`, 'error');
-                }
-            }
-            updateFileList();
-            updateUploadButton();
-        }
-
-        // Update file list display
-        function updateFileList() {
-            const fileList = document.getElementById('file-list');
-            fileList.innerHTML = selectedFiles.map((file, index) => `
-                <div class="file-item">
-                    <div class="file-info">
-                        <div class="file-name">📄 ${file.name}</div>
-                        <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-                    </div>
-                    <button onclick="removeFile(${index})" style="background: var(--error-color); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                        🗑️ Supprimer
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // Remove file from list
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFileList();
-            updateUploadButton();
-        }
-
-        // Update upload button state
-        function updateUploadButton() {
-            const uploadBtn = document.getElementById('upload-btn');
-            const hasFiles = selectedFiles.length > 0;
-            const hasRequiredFields = document.getElementById('subject-select').value && 
-                                    document.getElementById('year-input').value && 
-                                    document.getElementById('session-select').value;
-            
-            uploadBtn.disabled = !hasFiles || !hasRequiredFields;
-        }
-
-        // Upload files to backend
-        async function uploadFiles() {
-            const subject = document.getElementById('subject-select').value;
-            const year = document.getElementById('year-input').value;
-            const session = document.getElementById('session-select').value;
-            const fileType = document.querySelector('input[name="file-type"]:checked').value;
-
-            if (!subject || !year || !session) {
-                showAlert('❌ Veuillez remplir tous les champs requis', 'error');
-                return;
-            }
-
-            if (selectedFiles.length === 0) {
-                showAlert('❌ Veuillez sélectionner au moins un fichier', 'error');
-                return;
-            }
-
-            // Show upload progress
-            showAlert('📤 Upload en cours...', 'success');
-
-            try {
-                const formData = new FormData();
-                formData.append('subject', subject);
-                formData.append('year', year);
-                formData.append('session', session);
-                formData.append('fileType', fileType);
-
-                selectedFiles.forEach(file => {
-                    formData.append('files', file);
-                });
-
-                const response = await fetch('/api/exams/upload', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    },
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showAlert(`✅ ${result.message}`, 'success');
-                    selectedFiles = [];
-                    updateFileList();
-                    updateUploadButton();
-                    await updateStats();
-                } else {
-                    showAlert(`❌ Erreur: ${result.error}`, 'error');
-                }
-
-            } catch (error) {
-                console.error('Upload error:', error);
-                showAlert('❌ Erreur de connexion au serveur', 'error');
-            }
-        }
-
-        // Show alert message
-        function showAlert(message, type) {
-            const existingAlert = document.querySelector('.alert');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
-
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            
-            const container = document.querySelector('.container');
-            container.insertBefore(alert, container.children[2]);
-
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        }
-
-        // Update statistics from backend
-        async function updateStats() {
-            try {
-                const response = await fetch('/api/exams/stats');
-                const stats = await response.json();
-
-                if (response.ok) {
-                    document.getElementById('total-files').textContent = stats.totalExams;
-                    document.getElementById('total-size').textContent = `${stats.totalSize} MB`;
-                } else {
-                    console.error('Failed to fetch stats:', stats.error);
-                    // Fallback to default values
-                    document.getElementById('total-files').textContent = '0';
-                    document.getElementById('total-size').textContent = '0 MB';
-                }
-            } catch (error) {
-                console.error('Stats fetch error:', error);
-                // Fallback to default values
-                document.getElementById('total-files').textContent = '0';
-                document.getElementById('total-size').textContent = '0 MB';
-            }
-        }
-
-        // Add event listeners for form validation
-        document.getElementById('subject-select').addEventListener('change', updateUploadButton);
-        document.getElementById('year-input').addEventListener('input', updateUploadButton);
-        document.getElementById('session-select').addEventListener('change', updateUploadButton);
-
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
+    <script src="admin.js"></script>
 </body>
 </html>
+
+
