@@ -228,6 +228,11 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Root route redirect to calculator
+app.get('/', (req, res) => {
+  res.redirect('/simple.html');
+});
+
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
