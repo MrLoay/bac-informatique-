@@ -82,9 +82,18 @@ async function createTables() {
       WITH (OIDS=FALSE);
     `);
 
-    await client.query(`
-      ALTER TABLE session ADD CONSTRAINT session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE;
+    // Add primary key constraint only if it doesn't exist
+    const sessionConstraintExists = await client.query(`
+      SELECT constraint_name
+      FROM information_schema.table_constraints
+      WHERE table_name = 'session' AND constraint_type = 'PRIMARY KEY'
     `);
+
+    if (sessionConstraintExists.rows.length === 0) {
+      await client.query(`
+        ALTER TABLE session ADD CONSTRAINT session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE;
+      `);
+    }
 
     // Create indexes for better performance
     await client.query(`

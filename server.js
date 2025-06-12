@@ -49,7 +49,7 @@ app.use(limiter);
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com'] // Replace with your production domain
+    ? [process.env.FRONTEND_URL || 'https://your-app.railway.app'] // Will be updated with actual domain
     : ['http://localhost:3001', 'http://localhost:5173'],
   credentials: true
 }));

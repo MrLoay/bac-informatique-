@@ -10,7 +10,10 @@
     "server": "node server.js",
     "start": "concurrently \"npm run server\" \"npm run dev\"",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js"
+    "db:seed": "node scripts/seed.js",
+    "deploy:setup": "npm run db:migrate && npm run db:seed",
+    "setup:cloudinary": "node setup-cloudinary.js",
+    "test:deployment": "node test-deployment.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2",
